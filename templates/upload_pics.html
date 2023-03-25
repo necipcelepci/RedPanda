@@ -1,0 +1,345 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+
+
+  <div class="col-lg-12">
+    <div class="card">
+       <div class="card-body">
+       <div class="card-title">Image Uploader</div>
+       <hr>
+
+
+
+       <form action="{{ url_for('upload') }}" onsubmit="loading();" method="post" id="upload_images_form" autocomplete="off" enctype=multipart/form-data>
+          
+        <!-- <div class="form-group row autocomplete"> -->
+          <div class="form-group row ">
+              <label class="col-lg-1 col-form-label form-control-label">Camera ID</label>
+              <div class="col-lg-4">
+                <div style="background-color:rgba(236, 133, 133, 0.424);padding:10px;border-radius:10px; width: 90%; ">
+                  {% for camera in list_of_cameras %}
+                  <div class="form-check">
+                  {% if loop.index0 == 0 %}
+                    <input class="form-check-input" type="radio" name="cameraChoice" id="cameraChoice_{{camera}}" value="{{camera}}" checked>
+                  {% else %}
+                  <input class="form-check-input" type="radio" name="cameraChoice" id="cameraChoice_{{camera}}" value="{{camera}}">
+                  {% endif %}
+                    <label class="form-check-label" style="font-size: 15px;" for="cameraChoice_{{camera}}">
+                      Camera ID : {{camera}}
+                    </label>
+                  </div>
+                  {% endfor %}
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" name="cameraChoice" id="cameraChoice_other" value="other">
+                    <label class="form-check-label" style="font-size: 15px;" for="cameraChoice_other">
+                      Other
+                    </label>
+                  </div>
+                </div>
+                  <!-- <input type="text" class="form-control form-control-rounded" id="cameraNumberInput" name="cameraID" form="upload_images_form" placeholder="e.g. 0010" required> -->
+              </div>
+              <div class="col-lg-7">
+                <div class="custom-file-container" data-upload-id="myUniqueUploadId">
+                  <label>Upload File
+                      <a href="javascript:void(0)" class="custom-file-container__image-clear" title="Clear Image">&times;</a></label>
+                  <label class="custom-file-container__custom-file">
+                      <input
+                          form="upload_images_form"
+                          type="file"
+                          class="custom-file-container__custom-file__custom-file-input"
+                          accept="*"
+                          multiple
+                          aria-label="Choose File"
+                          required
+                          name=file
+                      />
+                    
+                      <span
+                          class="custom-file-container__custom-file__custom-file-control"
+                      ></span>
+                  </label>
+                  <div class="custom-file-container__image-preview" style="overflow: hidden;"></div>
+              </div>
+              </div>
+          </div>
+
+        <!-- <div class="form-group row">
+          <label class="col-lg-4 col-form-label form-control-label">Choose files</label>
+          <div class="col-lg-8">
+            <div class="custom-file-container" data-upload-id="myUniqueUploadId">
+              <label>Upload File
+                  <a href="javascript:void(0)" class="custom-file-container__image-clear" title="Clear Image">&times;</a></label>
+              <label class="custom-file-container__custom-file">
+                  <input
+                      form="upload_images_form"
+                      type="file"
+                      class="custom-file-container__custom-file__custom-file-input"
+                      accept="*"
+                      multiple
+                      aria-label="Choose File"
+                      required
+                      name=file
+                  />
+                
+                  <span
+                      class="custom-file-container__custom-file__custom-file-control"
+                  ></span>
+              </label>
+              <div class="custom-file-container__image-preview" style="overflow: hidden;"></div>
+          </div>
+          </div>
+      </div> -->
+
+        
+        <div class="form-group row">
+            <label class="col-lg-3 col-form-label form-control-label"></label>
+            <div class="col-lg-9">
+                <input type="submit" form="upload_images_form" class="btn btn-light btn-round px-5" style="float: right;" value="Analyse Images" >
+            </div>
+        </div>
+
+      </form>
+
+    {% if message %}
+    <div class="card-body pt-5">
+      <h5 class="card-title">Batch Report</h5>
+    </div>
+    <div class="card-body border-top border-light">
+        <div class="media align-items-center">
+          <div>
+              <img src="./static/images/total_images.png" class="skill-img" alt="skill img">
+          </div>
+            <div class="media-body text-left ml-3">
+              <div class="progress-wrapper">
+                <p>Total Images : {{total_images}}</p>
+                
+               </div>                   
+           </div>
+         </div>
+         <hr>
+         <div class="media align-items-center">
+          <div><img src="./static/images/logo.png" class="skill-img" alt="skill img"></div>
+            <div class="media-body text-left ml-3">
+              <div class="progress-wrapper">
+                <p>Panda  <span class="float-right">{{true_positives}}%</span></p>
+                <div class="progress" style="height: 5px;">
+                 <div class="progress-bar" style="width: {{true_positives}}%"></div>
+                </div>
+               </div>                   
+           </div>
+         </div>
+          <hr>
+         <div class="media align-items-center">
+          <div><img src="./static/images/logo.png" class="skill-img" alt="skill img"></div>
+            <div class="media-body text-left ml-3">
+              <div class="progress-wrapper">
+                <p>Not Panda <span class="float-right">{{false_positives}}%</span></p>
+                <div class="progress" style="height: 5px;">
+                 <div class="progress-bar" style="width:{{false_positives}}%"></div>
+                </div>
+               </div>                   
+           </div>
+         </div>
+         
+     </div>
+
+     <div class="row mt-3">
+
+      <div class="modal fade" id="imagemodal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">              
+            <div class="modal-body">
+              <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+              <img src="" class="imagepreview" style="width: 100%;" >
+            </div>
+          </div>
+        </div>
+      </div>
+        
+      <div class="col-lg-6">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Panda</h5>
+            <ul id="panda_zone" class="panda_zone ui-helper-reset ui-helper-clearfix">
+
+              {% for panda_image in panda_files %}
+                <li class="ui-widget-content ui-corner-tr">
+                  <a href="#" class="pop"><img src="{{panda_image[0]}}" id="p_{{loop.index0}}" alt="Not a panda" width="100" height="80"></a>
+                  <span class="badge badge-pill badge-success">{{panda_image[1]}}</span>
+                  
+                </li>
+              {% endfor %}
+            
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Not Panda</h5>
+            <ul id="non_panda_zone" class="non_panda_zone ui-helper-reset ui-helper-clearfix">
+              
+              {% for non_panda_image in non_panda_files %}
+              <li class="ui-widget-content ui-corner-tr">
+                <a href="#" class="pop"><img src="{{non_panda_image[0]}}" id="np_{{loop.index0}}" alt="Not a panda" width="100" height="80"></a>
+                <span class="badge badge-pill badge-danger">{{non_panda_image[1]}}%</span>
+              </li>
+              {% endfor %}
+            
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div><!--End Row-->
+
+    <div class="form-group row">
+      <label class="col-lg-3 col-form-label form-control-label"></label>
+      <div class="col-lg-9">
+          <input type="submit" id="upload_images" class="btn btn-light btn-round px-5" style="float: right;" value="Upload Images">
+      </div>
+    </div>
+
+    {% endif %}
+
+     </div>
+     </div>
+  </div>
+
+<!-- The JS is here as it uses JINJA syntax  -->
+  <script>
+    var upload = new FileUploadWithPreview("myUniqueUploadId",{
+                showDeleteButtonOnImages: true,
+                
+            });
+
+    $(function() {
+		$('.pop').on('click', function() {
+			$('.imagepreview').attr('src', $(this).find('img').attr('src'));
+			$('#imagemodal').modal('show');   
+		});	
+    
+});
+
+$( function() {
+ 
+ // There's the gallery and the trash
+ var $panda_zone = $( "#panda_zone" );
+ var $non_panda_zone = $( "#non_panda_zone" );
+ var movement_tracker = [] //a list keeping track of all image movement 
+
+
+ // Let the gallery items be draggable
+ $( "li", $panda_zone ).draggable({
+   cancel: "a.ui-icon", // clicking an icon won't initiate dragging
+   revert: "invalid", // when not dropped, the item will revert back to its initial position
+   containment: "document",
+   helper: "clone",
+   cursor: "move"
+ });
+
+ // Let the gallery items be draggable
+ $( "li", $non_panda_zone ).draggable({
+   cancel: "a.ui-icon", // clicking an icon won't initiate dragging
+   revert: "invalid", // when not dropped, the item will revert back to its initial position
+   containment: "document",
+   helper: "clone",
+   cursor: "move"
+ });
+
+ // Let the non_panda_zone be droppable, accepting the panda items
+ $non_panda_zone.droppable({
+   accept: "#panda_zone li",
+   classes: {
+     "ui-droppable-active": "custom-state-active"
+   },
+   drop: function( event, ui ) {
+     classify_notPanda( ui.draggable );
+   }
+ });
+
+ // Let the gallery be droppable as well, accepting items from the non_panda_zone
+ $panda_zone.droppable({
+   accept: "#non_panda_zone li",
+   classes: {
+     "ui-droppable-active": "custom-state-active"
+   },
+   drop: function( event, ui ) {
+     classify_Panda( ui.draggable );
+   }
+ });
+
+
+
+ // move to non panda zone
+ function classify_notPanda( $item ) {
+   movement_tracker.push($item.find('img').attr('id'))
+   console.log(movement_tracker) //this prints out the id of the image that got moved
+   $item.fadeOut(function() {
+     $item.appendTo( $non_panda_zone ).fadeIn();
+   });
+ }
+
+ // move to panda zone
+ function classify_Panda( $item ) {
+   movement_tracker.push($item.find('img').attr('id'))
+   console.log(movement_tracker) //this prints out the id of the image that got moved
+   $item.fadeOut(function() {
+     $item.appendTo( $panda_zone ).fadeIn();
+   });
+ }
+
+ //if the user wants to upload the images to the server after correcting the classification, do this.
+ $("#upload_images").click(function(){
+        // $("input").prop('disabled', true);
+        $("#loading").show();
+        $("#wrapper").hide();  
+        $.ajax({
+          type: 'POST',
+          url: "{{url_for('upload_analysed_images')}}",
+          data: JSON.stringify (movement_tracker),
+          success: function(response){
+                      //$('.alert').alert()
+                      window.location.href = "{{url_for('upload')}}"
+                  },
+          error: function(error){
+                    alert('Failed...try again!')
+                  },
+          complete: function(){
+                    $("#loading").hide();
+                    
+                  },
+          contentType: "application/json",
+          dataType: 'json'
+      });
+      });
+
+
+
+ // Resolve the icons behavior with event delegation
+ $( "ul.panda_zone > li, ul.non_panda_zone > li" ).on( "click", function( event ) {
+   var $item = $( this ),
+     $target = $( event.target );
+
+   if ( $target.is( "a.ui-icon-trash" ) ) {
+     deleteImage( $item );
+   } else if ( $target.is( "a.ui-icon-zoomin" ) ) {
+     viewLargerImage( $target );
+   } else if ( $target.is( "a.ui-icon-refresh" ) ) {
+     recycleImage( $item );
+   }
+
+   return false;
+ });
+
+
+
+} );
+
+  
+
+  </script>
+
+{% endblock %}
